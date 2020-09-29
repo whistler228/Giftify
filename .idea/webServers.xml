@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="1f966091-2eb2-4953-b25c-48c17625189a" name="Raspberry pi" url="http://localhost">
+        <fileTransfer rootFolder="/home/whistler/Projects" accessType="SFTP" host="192.168.3.102" port="22" sshConfigId="75315642-fd2c-44ea-a5a5-06082fe54135" sshConfig="whistler@192.168.3.102:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
