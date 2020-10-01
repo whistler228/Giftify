@@ -1,0 +1,6 @@
+Django
+huey
+requests
+lxml
+psycopg2
+redis

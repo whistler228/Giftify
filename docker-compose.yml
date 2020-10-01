@@ -1,0 +1,59 @@
+version: "3"
+services:
+  web:
+    build: .
+    command: >
+      bash -c "python3 manage.py makemigrations &&
+      python3 manage.py migrate &&
+      python3 manage.py runserver 0.0.0.0:8002"
+    env_file:
+      - django.env
+    environment:
+      - "DJANGO_SECRET_KEY"
+      - "VIRTUAL_HOST=amaten.dplab.biz"
+      - "VIRTUAL_PORT=8002"
+    volumes:
+      - .:/code
+    ports:
+      - "8002:8002"
+    expose:
+      - 8002
+    depends_on:
+      - postgres_amaten
+
+  postgres_amaten:
+    image: library/postgres:latest
+
+    volumes:
+      - postgres_data:/var/lib/postgres/data
+    ports:
+      - "5434:5432"
+
+    environment:
+      - "POSTGRES_USER=django_amaten"
+      - "POSTGRES_PASSWORD=8!VVfM8jV^f@"
+      - "POSTGRES_DB=django_db"
+
+  huey:
+    build: .
+    command: >
+      bash -c "python3 manage.py run_huey --logfile huey.log"
+    environment:
+      - "DJANGO_SECRET_KEY"
+    env_file:
+      - django.env
+      - mail_account.env
+
+    volumes:
+      - .:/code
+    depends_on:
+      - postgres_amaten
+
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    external:
+      name: projects_default
