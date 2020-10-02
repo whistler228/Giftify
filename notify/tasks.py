@@ -1,14 +1,13 @@
-import smtplib
-import ssl
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.utils import formatdate
 from logging import getLogger
 
+import sendgrid
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.templatetags.static import static
+from django.urls import reverse
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
+from sendgrid.helpers.mail import Mail, From, To
 
 from account.models import CustomUser, Condition
 from core.models import Gift
@@ -38,29 +37,37 @@ def check_condition():
 
 @task()
 def send_mail(_gift_ids, username):
+    return send(_gift_ids, username)
+
+
+def send(_gift_ids, username):
     user = CustomUser.objects.get(username=username)
     gifts = [Gift.objects.get(gift_id=x) for x in _gift_ids]
+    dist = user.email
 
-    def create_msg():
+    def create_html():
         return render_to_string("notify/mail_body.html",
                                 {"user": user, "gifts": gifts, "gift_type": gifts[0].gift_type.name})
 
+    msg = Mail(
+        From(settings.MAIL_ADDR),
+        To(dist)
+    )
+    msg.dynamic_template_data = {
+        "gifts": [{"added_at": x.added_at.strftime("%Y/%m/%d-%H:%M:%S"),
+                   "face_value": x.face_value,
+                   "price": x.price} for x in gifts],
+        "subject": "Amaten 出品のお知らせ",
+        "image": "http://amaten.dplab.biz" + static("images/gift_logo/google_play.png"),
+        "unsubscribe": reverse("account:unsubscribe_page")
+    }
+    msg.template_id = "d-7f2de4cff2554542ace60013acff23d5"
     try:
-        smtp = smtplib.SMTP_SSL("smtp.yandex.com", 465, timeout=10, context=ssl.create_default_context())
-        smtp.login(settings.MAIL_ADDR, settings.MAIL_PASS)
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "ギフト券が出品されました"
-        msg["From"] = settings.MAIL_ADDR
-        msg["To"] = user.email
-        msg["Date"] = formatdate()
-        plain_part = MIMEText("text", "plain")
-        html_part = MIMEText(create_msg(), "html")
-        msg.attach(plain_part)
-        msg.attach(html_part)
-        smtp.sendmail(settings.MAIL_ADDR, user.email, msg.as_string())
-        smtp.close()
-    except [smtplib.SMTPAuthenticationError, smtplib.SMTPConnectError] as e:
+        sg = sendgrid.SendGridAPIClient(settings.SENDGRID_API)
+        response = sg.send(msg.get())
+    except Exception as e:
         logger.error(e)
         print(e)
+        return None
     logger.debug(f"[NOTIFY] Sent a Mail to {user.email}")
-    return True
+    return dist

@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,6 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "huey.contrib.djhuey",
+    "widget_tweaks",
+    "collect",
+    "core",
+    "notify",
+    "api",
+    "account"
 ]
 
 MIDDLEWARE = [
@@ -77,8 +84,15 @@ WSGI_APPLICATION = 'AmatenWeb.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.environ.get('DATABASE_DB', os.path.join(BASE_DIR, 'db.sqlite3')),
+        'USER': os.environ.get('DATABASE_USER', 'user'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'password'),
+        'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
+        'PORT': os.environ.get('DATABASE_PORT', '5432'),
+    },
+    "huey": {
+        "NAME": os.path.join(BASE_DIR, "huey.sqlite3")
     }
 }
 
@@ -105,9 +119,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ja'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tokyo'
 
 USE_I18N = True
 
@@ -115,8 +129,29 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+AUTH_USER_MODEL = "account.CustomUser"
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/account/login"
+
+# Huey
+HUEY = {
+    "name": "huey",
+    "huey_class": "huey.SqliteHuey",
+    "connection": {"filename": DATABASES["huey"]["NAME"]},
+    "immediate": False,
+    "consumer": {
+        "workers": 3,
+    }
+}
+
+# Mail
+MAIL_ADDR = os.environ.get("DJANGO_MAIL_ADDR")
+# MAIL_PASS = os.environ.get("DJANGO_MAIL_PASS")
+# MAIL_SMTP_URL = os.environ.get("DJANGO_MAIL_SMTP_URL")
+# MAIL_SMTP_PORT = os.environ.get("DJANGO_MAIL_SMTP_PORT", 465)
+SENDGRID_API = os.environ.get("SENDGRID_API")
