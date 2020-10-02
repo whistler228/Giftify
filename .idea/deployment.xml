@@ -8,7 +8,10 @@
             <mapping deploy="/Amaten" local="$PROJECT_DIR$" web="/" />
           </mappings>
           <excludedPaths>
-            <excludedPath path="/AmatenWeb/venv" />
+            <excludedPath path="/Amaten/venv" />
+            <excludedPath path="/Amaten/*/migrations" />
+            <excludedPath path="/Amaten/db.sqlite3" />
+            <excludedPath path="/Amaten/huey.sqlite3" />
           </excludedPaths>
         </serverdata>
       </paths>
