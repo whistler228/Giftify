@@ -7,6 +7,7 @@ from core.models import Gift, GiftType
 class CustomUser(AbstractUser):
     nickname = models.CharField(max_length=12)
     notified = models.ManyToManyField(Gift, related_name="notified_users")
+    email = models.EmailField(blank=True, unique=True)
 
 
 class Condition(models.Model):
