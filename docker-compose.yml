@@ -8,6 +8,7 @@ services:
       python3 manage.py runserver 0.0.0.0:8002"
     env_file:
       - django.env
+      - secrets.env
     environment:
       - "DJANGO_SECRET_KEY"
       - "VIRTUAL_HOST=amaten.dplab.biz"
@@ -28,10 +29,9 @@ services:
       - postgres_data:/var/lib/postgres/data
     ports:
       - "5434:5432"
-
+    env_file:
+      - secrets.env
     environment:
-      - "POSTGRES_USER=django_amaten"
-      - "POSTGRES_PASSWORD=8!VVfM8jV^f@"
       - "POSTGRES_DB=django_db"
 
   huey:
@@ -42,12 +42,13 @@ services:
       - "DJANGO_SECRET_KEY"
     env_file:
       - django.env
-      - mail_account.env
+      - secrets.env
 
     volumes:
       - .:/code
     depends_on:
       - postgres_amaten
+      - web
 
 
 volumes:

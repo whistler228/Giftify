@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+{% block head %}
+    <script rel="{% static "js/scripts.js" %}"></script>
+{% endblock %}
+{% block content %}
+    <div class="row mt-lg-5">
+        <div class="col-sm-4 mx-auto card pt-5 pb-3 px-3">
+            <form method="post" action="{% url "api:unsubscribe" %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email address:</label>
+                    {% if email %}
+                        {{ form.email|add_class:"form-control" }}
+                    {% else %}
+                        {{ form.email|add_class:"form-control" }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username:</label>
+                    {{ form.username|add_class:"form-control" }}
+                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="text-danger mx-auto px-3">{{ message }}</div>
+                    {% endfor %}
+
+                {% endif %}
+                <div class="text-center">
+                    <button type="submit" class="btn btn-info mt-5">Unsubscribe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

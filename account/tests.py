@@ -1,7 +1,8 @@
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from .models import CustomUser
+from core.models import GiftType
+from .models import CustomUser, Condition
 
 
 class UserGetTest(TestCase):
@@ -24,3 +25,25 @@ class UserGetTest(TestCase):
     def test_get_user_by_username_email2(self):
         user = CustomUser.objects.get(email="test@test.com")
         return self.assertEqual(user, self.user)
+
+
+class ConditionTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(ConditionTest, cls).setUpClass()
+        cls.gift_type = GiftType.objects.create(name="test gift")
+
+    def test_create_same1(self):
+        condition1 = Condition.objects.create(gift_type=self.gift_type, min_price=5000, max_price=10000, max_rate=85)
+        try:
+            condition2 = Condition.objects.create(gift_type=self.gift_type, min_price=5000, max_price=10000,
+                                                  max_rate=85)
+        except IntegrityError:
+            return True
+
+    def test_create_same2(self):
+        condition1 = Condition.objects.create(gift_type=self.gift_type)
+        try:
+            condition2 = Condition.objects.create(gift_type=self.gift_type)
+        except IntegrityError:
+            return True

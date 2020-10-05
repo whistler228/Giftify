@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
 
+from .forms import UnsubscribeForm
 from .models import CustomUser
 
 
@@ -45,4 +46,12 @@ def user_detail(request):
 
 
 def unsubscribe(request):
-    return None
+    email = request.GET.get("email", None)
+    form = UnsubscribeForm(initial={"email": email})
+    if email:
+        form.fields["email"].widget.attrs["readonly"] = True
+    return render(request, "account/unsubscribe_form.html", {"email": email, "form": form})
+
+
+def unsubscribe_done(request):
+    return render(request, "account/unsubscribe_done.html")
