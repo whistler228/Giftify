@@ -7,7 +7,9 @@
             {% for gift_type in gift_types %}
                 <div class="col-3 px-0">
                     <div class="card mx-1">
-                        <img class="card-img-top" src="{% static gift_type %}" alt="">
+                        <a href="{% url 'core:plot_gift' gift_type.name %}">
+                            <img class="card-img-top" src="{% static gift_type.url %}" alt="">
+                        </a>
                     </div>
                 </div>
             {% endfor %}

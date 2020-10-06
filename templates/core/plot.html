@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"
+            integrity="sha512-vBmx0N/uQOXznm/Nbkp7h0P1RfLSj0HQrFSzV8m7rOGyj30fYAOKHYvCNez+yM8IrfnW0TCodDEjRqf6fodf/Q=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"
+            integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.7.7/chartjs-plugin-zoom.min.js"
+            integrity="sha512-8E9fPF4pjWxI0dpprpn4WYeciAMo2kh6xN0COFxvTfurMttjZzih/sBp+Fxu49Zr6IUSp4sqWY6KLecnqOCwxA=="
+            crossorigin="anonymous"></script>
+    <script src="{% static "js/scripts.js" %}"></script>
+{% endblock %}
+{% block content %}
+    <div class="content mx-auto">
+        <button type="button" class="btn btn-info" onclick="myChart.updateChart('{% url "api:get_gift" %}', 0)">Update
+        </button>
+        <div class="row">
+            <canvas id="graph"></canvas>
+            <button type="button" class="btn btn-sm btn-outline-info ml-auto" onclick="myChart.chart.resetZoom()">
+                Reset
+            </button>
+        </div>
+    </div>
+{% endblock %}
+{% block bottom_script %}
+    <script>
+        const canvas = $("#graph")
+        const chart = new Chart(canvas)
+        const myChart = new MyChart('{% url "api:get_gift" %}', chart, canvas, ["google_play"])
+    </script>
+{% endblock %}
