@@ -15,7 +15,7 @@ def collect_from_api(gift_type):
 
     Gift.objects.filter(available=True).update(available=False)
     for g in gifts:
-        gift = Gift.objects.update_or_create(
+        gift, _ = Gift.objects.update_or_create(
             gift_id=g["id"],
             defaults={
                 "gift_type": gift_type,
