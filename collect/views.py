@@ -7,7 +7,7 @@ def collect_from_api(gift_type):
     api = "https://amaten.com/api/gifts"
 
     headers = {"X-Requested-With": "XMLHttpRequest"}
-    params = {"order": "", "type": gift_type, "limit": 20, "last_id": ""}
+    params = {"order": "", "type": gift_type, "limit": 100, "last_id": ""}
     res = requests.get(api, headers=headers, params=params)
 
     gifts = res.json()["gifts"]
