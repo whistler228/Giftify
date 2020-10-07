@@ -1,10 +1,10 @@
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from account.models import CustomUser
+from core.forms import GiftFormSearch
 from core.models import Gift
 
 
@@ -52,28 +52,47 @@ def unsubscribe(request):
 
 @require_GET
 def get_gift(request):
-    data = request.GET
-    gift_type = data.get("type")
-    available = False if data.get("available", "true") != "true" else True
-    dt_from = data.get("from", timezone.datetime.strptime("2000-1-1", "%Y-%m-%d"))
-    dt_to = data.get("to", timezone.datetime.strptime("2100-1-1", "%Y-%m-%d"))
-    fv_min = int(data.get("faceValueMin", 0))
-    fv_max = int(data.get("faceValueMax", 1000000))
-    price_min = int(data.get("priceMin", 0))
-    price_max = int(data.get("priceMax", 1000000))
-    rate_min = int(data.get("rateMin", 0.))
-    rate_max = int(data.get("rateMax", 100.))
-
-    dt_from = timezone.make_aware(dt_from)
-    dt_to = timezone.make_aware(dt_to)
-
-    if not gift_type:
+    if not request.GET:
         return JsonResponse({"status": False})
 
-    qs = Gift.objects.filter(gift_type__name=gift_type, available=available, added_at__gte=dt_from, added_at__lte=dt_to,
-                             face_value__gte=fv_min, face_value__lte=fv_max, price__gte=price_min, price__lte=price_max,
-                             rate__gte=rate_min, rate__lte=rate_max)
+    form = GiftFormSearch(request.GET, initial={"available": (0, "Any")})
+    if not form.is_valid():
+        return JsonResponse({"status": False, "errors": form.errors})
 
-    gifts = [{"face_value": x.face_value, "price": x.price, "rate": x.rate, "added_at": x.added_at.isoformat()} for x in
+    gift_type = form.cleaned_data.get("gift_type")
+    available = form.cleaned_data.get("available")
+    dt_from = form.cleaned_data.get("dt_from")
+    dt_to = form.cleaned_data.get("dt_to")
+    fv_min = form.cleaned_data.get("face_value_min")
+    fv_max = form.cleaned_data.get("face_value_max")
+    price_min = form.cleaned_data.get("price_min")
+    price_max = form.cleaned_data.get("price_max")
+    rate_min = form.cleaned_data.get("rate_min")
+    rate_max = form.cleaned_data.get("rate_max")
+
+    limit = form.cleaned_data.get("limit")
+
+    if available == "0":
+        available = [True, False]
+    elif available == "1":
+        available = [True]
+    elif available == "2":
+        available = [False]
+    # dt_from = timezone.make_aware(dt_from)
+    # dt_to = timezone.make_aware(dt_to)
+
+    qs = Gift.objects.filter(gift_type__name=gift_type, available__in=available, added_at__gte=dt_from,
+                             added_at__lte=dt_to,
+                             face_value__gte=fv_min, face_value__lte=fv_max, price__gte=price_min, price__lte=price_max,
+                             rate__gte=rate_min, rate__lte=rate_max).order_by("added_at").reverse()[:limit]
+
+    gifts = [{"face_value": x.face_value, "price": x.price, "rate": x.rate,
+              "added_at": x.added_at.replace(second=0, microsecond=0).isoformat()} for x in
              qs]
     return JsonResponse({"status": True, "gifts": gifts})
+
+
+def test(request):
+    form = GiftFormSearch(request.GET)
+    form.is_valid()
+    return JsonResponse({"data": request.GET, "status": form.cleaned_data, "msg": form.errors})

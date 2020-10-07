@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load widget_tweaks %}
 {% block head %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"
             integrity="sha512-vBmx0N/uQOXznm/Nbkp7h0P1RfLSj0HQrFSzV8m7rOGyj30fYAOKHYvCNez+yM8IrfnW0TCodDEjRqf6fodf/Q=="
@@ -11,16 +12,125 @@
             integrity="sha512-8E9fPF4pjWxI0dpprpn4WYeciAMo2kh6xN0COFxvTfurMttjZzih/sBp+Fxu49Zr6IUSp4sqWY6KLecnqOCwxA=="
             crossorigin="anonymous"></script>
     <script src="{% static "js/scripts.js" %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.28.0/moment.min.js"
+            integrity="sha512-Q1f3TS3vSt1jQ8AwP2OuenztnLU6LwxgyyYOG1jgMW/cbEMHps/3wjvnl1P3WTrF3chJUWEoxDUEjMxDV8pujg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.28.0/moment-with-locales.min.js"
+            integrity="sha512-kcvf1mExE8WCOLBL5re/9hLUHfaj8+LQrKlupTarmme+rwv8asLK4q6Ge32trTMBElPBP5sll4czZKNvps0VvA=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/js/tempusdominus-bootstrap-4.min.js"
+            integrity="sha512-2JBCbWoMJPH+Uj7Wq5OLub8E5edWHlTM4ar/YJkZh3plwB2INhhOC3eDoqHm1Za/ZOSksrLlURLoyXVdfQXqwg=="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.1.2/css/tempusdominus-bootstrap-4.css"
+          integrity="sha512-PMjWzHVtwxdq7m7GIxBot5vdxUY+5aKP9wpKtvnNBZrVv1srI8tU6xvFMzG8crLNcMj/8Xl/WWmo/oAP/40p1g=="
+          crossorigin="anonymous"/>
+    <link rel="stylesheet" href="{% static 'form-style.css' %}"/>
 {% endblock %}
 {% block content %}
     <div class="content mx-auto">
-        <button type="button" class="btn btn-info" onclick="myChart.updateChart('{% url "api:get_gift" %}', 0)">Update
-        </button>
+        <form action="{% url 'api:test' %}" method="get">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="{{ form.gift_type.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.gift_type.label }}</label>
+                    {{ form.gift_type|add_class:"form-control form-control-sm" }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    <label for="{{ form.face_value_min.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.face_value_min.label }}</label>
+                    {{ form.face_value_min|add_class:"form-control form-control-sm" }}
+                </div>
+                <span class="mb-0 my-auto">~</span>
+                <div class="form-group col">
+                    <label for="{{ form.face_value_max.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.face_value_max.label }}</label>
+                    {{ form.face_value_max|add_class:"form-control form-control-sm" }}
+                </div>
+                <div class="form-group col">
+                    <label for="{{ form.price_min.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.price_min.label }}</label>
+                    {{ form.price_min|add_class:"form-control form-control-sm" }}
+                </div>
+                <span class="mb-0 my-auto">~</span>
+                <div class="form-group col">
+                    <label for="{{ form.price_max.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.price_max.label }}</label>
+                    {{ form.price_max|add_class:"form-control form-control-sm" }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col">
+                    <label for="{{ form.rate_min.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.rate_min.label }}</label>
+                    {{ form.rate_min|add_class:"form-control form-control-sm" }}
+                </div>
+                <div class="form-group col">
+                    <label for="{{ form.rate_max.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.rate_max.label }}</label>
+                    {{ form.rate_max|add_class:"form-control form-control-sm" }}
+                </div>
+                <div class="form-group col">
+                    <label for="{{ form.dt_from.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.dt_from.label }}</label>
+                    <div class="input-group date" id="{{ form.dt_from.id_for_label }}Picker"
+                         data-target-input="nearest">
+                        <input id="{{ form.dt_from.id_for_label }}" type="text"
+                               class="form-control form-control-sm datetimepicker-input"
+                               data-target="#{{ form.dt_from.id_for_label }}Picker" placeholder="Working Time End"
+                               name="working_time_end" value="">
+                        <div class="input-group-append" data-target="#{{ form.dt_from.id_for_label }}"
+                             data-toggle="datetimepicker">
+                            <div class="input-group-text">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col">
+                    <label for="{{ form.dt_to.id_for_label }}"
+                           class="col-form-label col-form-label-sm py-0">{{ form.dt_to.label }}</label>
+                    <div class="input-group date" id="{{ form.dt_to.id_for_label }}Picker"
+                         data-target-input="nearest">
+                        <input id="{{ form.dt_to.id_for_label }}" type="text"
+                               class="form-control form-control-sm datetimepicker-input"
+                               data-target="#{{ form.dt_to.id_for_label }}Picker" placeholder="Working Time End"
+                               name="working_time_end" value="">
+                        <div class="input-group-append" data-target="#{{ form.dt_to.id_for_label }}"
+                             data-toggle="datetimepicker">
+                            <div class="input-group-text">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.available }}
+                </div>
+            </div>
+            <button type="button" class="btn btn-info"
+                    onclick="myChart.updateChart($('form'), '{% url "api:get_gift" %}', 0)">Update
+            </button>
+        </form>
         <div class="row">
             <canvas id="graph"></canvas>
-            <button type="button" class="btn btn-sm btn-outline-info ml-auto" onclick="myChart.chart.resetZoom()">
-                Reset
-            </button>
+            <div class="ml-auto">
+                <div class="btn-group btn-group-toggle ml-auto" data-toggle="buttons">
+                    <label class="btn btn-sm btn-outline-dark"><input type="radio" id="unitDay"
+                                                                      name="options">DAY</label>
+                    <label class="btn btn-sm btn-outline-dark"><input type="radio" id="unitHour"
+                                                                      name="options">HOUR</label>
+                    <label class="btn btn-sm btn-outline-dark"><input type="radio" id="unitMinute" name="options">MINUTE</label>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-info" onclick="myChart.chart.resetZoom()">
+                    Reset
+                </button>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -28,6 +138,33 @@
     <script>
         const canvas = $("#graph")
         const chart = new Chart(canvas)
-        const myChart = new MyChart('{% url "api:get_gift" %}', chart, canvas, ["google_play"])
+        const myChart = new MyChart('{% url "api:get_gift" %}', chart, canvas, $("form"), ["google_play"])
+    </script>
+    <script>
+        addTimeScaleChangeEvent(myChart, $("#unitDay"), "day")
+        addTimeScaleChangeEvent(myChart, $("#unitHour"), "hour")
+        addTimeScaleChangeEvent(myChart, $("#unitMinute"), "minute")
+    </script>
+    <script>
+        $.extend($.fn.datetimepicker.Constructor.Default, {
+            icons: {
+                time: 'far fa-clock',
+                date: 'far fa-calendar',
+                up: 'fas fa-arrow-up',
+                down: 'fas fa-arrow-down',
+                previous: 'fas fa-chevron-left',
+                next: 'fas fa-chevron-right',
+                today: 'far fa-calendar-check-o',
+                clear: 'far fa-trash',
+                close: 'far fa-times'
+            },
+            timeZone: "Asia/Tokyo",
+            format: "YYYY-MM-DD hh:mm",
+            locale: "ja",
+            userCurrent: false,
+        });
+        $("#{{ form.dt_from.id_for_label }}Picker").datetimepicker({});
+        $("#{{ form.dt_to.id_for_label }}Picker").datetimepicker({});
+        $("input:checked").parent().addClass("active")
     </script>
 {% endblock %}

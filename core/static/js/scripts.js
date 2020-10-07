@@ -1,8 +1,9 @@
 class MyChart {
-    constructor(url, chart, canvas, giftTypes) {
+    constructor(url, chart, canvas, form, giftTypes) {
         this.chart = chart
         this.canvas = canvas
         this.giftTypes = giftTypes
+        this.form = form
         this.plot(url, giftTypes[0])
     }
 
@@ -49,7 +50,6 @@ class MyChart {
                 }
             },
         }
-        console.log(self.pluginZoomConfig)
 
 
         function updateChart(gifts) {
@@ -74,7 +74,7 @@ class MyChart {
             });
         }
 
-        $.getJSON(url, {"type": "google_play", "available": false, "priceMin": 5000}, function (json) {
+        $.getJSON(url, self.form.serialize(), function (json) {
             if (!json.status === true) {
                 return false
             }
@@ -82,18 +82,17 @@ class MyChart {
         })
     }
 
-    updateChart(url, datasetIdx) {
+    updateChart(form, url, datasetIdx) {
         const self = this
-        $.getJSON(url, {"type": "google_play", "available": false}, function (json) {
+        $.getJSON(url, form.serialize(), function (json) {
             if (!json.status === true) {
-                console.log(json.status)
+                console.error(json.errors)
                 return false
             }
             self.chart.data.datasets[datasetIdx].data = []
-            console.log()
             json.gifts.forEach(item => {
                     self.chart.data.datasets[datasetIdx].data.push({
-                        x: item.added_at,
+                        t: item.added_at,
                         y: item.rate,
                         price: item.price,
                         faceValue: item.face_value
@@ -103,6 +102,20 @@ class MyChart {
             self.chart.update()
         })
     }
+
+    changeTimeUnit(unitType) {
+        this.chart.options.scales.xAxes[0].time.unit = unitType
+        this.chart.update()
+    }
+}
+
+function addTimeScaleChangeEvent(myChart, obj, unitType) {
+    obj.on("change", function (event) {
+        const target = $(event.target)
+        if (!target.hasClass("active")) {
+            myChart.changeTimeUnit(unitType)
+        }
+    })
 }
 
 function convertDate(date) {
@@ -111,8 +124,8 @@ function convertDate(date) {
     }
 
     const year = date.getFullYear()
-    const month = zeroFill(date.getMonth())
-    const day = zeroFill(date.getDay())
+    const month = zeroFill(date.getMonth() + 1)
+    const day = zeroFill(date.getDate())
     const hour = zeroFill(date.getHours())
     const minute = zeroFill(date.getMinutes())
     const second = zeroFill(date.getSeconds())

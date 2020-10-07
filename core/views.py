@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
-from .models import GiftType, Gift
+from .forms import GiftFormSearch
+from .models import GiftType
 
 
 def top(request):
@@ -11,6 +12,6 @@ def top(request):
 
 
 def plot(request, gift_type):
-    gifts = Gift.objects.filter(gift_type__name=gift_type)
-    labels = [f"{x.face_value}" for x in gifts]
-    return render(request, "core/plot.html", {"gifts": gifts, "labels": labels})
+    get_object_or_404(GiftType, name=gift_type)
+    form = GiftFormSearch()
+    return render(request, "core/plot.html", {"form": form})
