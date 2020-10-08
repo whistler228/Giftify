@@ -4,7 +4,7 @@ services:
     build: .
     command: >
       bash -c "python3 manage.py makemigrations &&
-      python3 manage.py migrate &&
+      python3 manage.py migrate --no-input &&
       python3 manage.py runserver 0.0.0.0:8002"
     env_file:
       - django.env
