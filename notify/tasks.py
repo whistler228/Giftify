@@ -24,6 +24,7 @@ def periodic_check_condition():
                 if user.email and user.is_send_mail:
                     task_send_mail(
                         res.values_list("gift_id", flat=True),
+                        condition.id,
                         user.username
                     )
                 [user.notified.add(x) for x in res]
