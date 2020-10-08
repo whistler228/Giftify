@@ -136,7 +136,7 @@
     <script>
         const canvas = $("#graph")
         const chart = new Chart(canvas)
-        const myChart = new MyChart('{% url "api:get_gift" %}', chart, canvas, $("form"), ["google_play"])
+        const myChart = new MyChart('{% url "api:get_gift" %}', chart, canvas, $("form"), "{{ gift_type }}")
     </script>
     <script>
         addTimeScaleChangeEvent(myChart, $("#unitDay"), "day")

@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from core.models import GiftType, Gift
 
@@ -23,8 +24,12 @@ class GiftFormSearch(forms.Form):
     dt_to = forms.DateTimeField(required=False)
     limit = forms.IntegerField(required=False)
 
-    oldest = Gift.objects.order_by("added_at").first().added_at
-    latest = Gift.objects.order_by("added_at").last().added_at
+    if Gift.objects.all().exists():
+        oldest = Gift.objects.order_by("added_at").first().added_at
+        latest = Gift.objects.order_by("added_at").last().added_at
+    else:
+        oldest = timezone.make_aware(timezone.datetime.strptime("2020", "%Y"))
+        latest = timezone.make_aware(timezone.datetime.now().replace(second=0, microsecond=0))
 
     def __init__(self, *args, **kwargs):
         super(GiftFormSearch, self).__init__(*args, **kwargs)

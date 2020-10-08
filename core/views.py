@@ -12,6 +12,6 @@ def top(request):
 
 
 def plot(request, gift_type):
-    get_object_or_404(GiftType, name=gift_type)
-    form = GiftFormSearch()
-    return render(request, "core/plot.html", {"form": form})
+    gift_type = get_object_or_404(GiftType, name=gift_type)
+    form = GiftFormSearch({"gift_type": gift_type.name, "available": 0})
+    return render(request, "core/plot.html", {"form": form, "gift_type": gift_type.display_name})

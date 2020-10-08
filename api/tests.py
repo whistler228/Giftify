@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from account.models import CustomUser, Condition
+from core.forms import GiftFormSearch
 from core.models import GiftType, Gift
 
 
@@ -28,12 +30,14 @@ class UnsubscriptionTest(TestCase):
 class GetGiftTest(TestCase):
     @classmethod
     def setUpClass(cls):
+        gift_type = GiftType.objects.create(name="test", display_name="Test")
         super(GetGiftTest, cls).setUpClass()
-        gift_type = GiftType.objects.create(name="test")
+        date = timezone.now()
         cls.gift1 = Gift.objects.create(gift_id=1, gift_type=gift_type, face_value=10000, price=9000, rate=90.,
-                                        available=True)
+                                        available=True, added_at=date)
 
     def test_get_data(self):
-        res = self.client.get(reverse("api:get_gift"), {"type": "test"})
+        form = GiftFormSearch()
+        res = self.client.get(reverse("api:get_gift"), {"gift_type": "test", "available": 0})
         print(res.json())
         return self.assertTrue(res.json()["status"])

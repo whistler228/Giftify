@@ -1,10 +1,10 @@
 class MyChart {
-    constructor(url, chart, canvas, form, giftTypes) {
+    constructor(url, chart, canvas, form, giftType) {
         this.chart = chart
         this.canvas = canvas
-        this.giftTypes = giftTypes
+        this.giftTypes = giftType
         this.form = form
-        this.plot(url, giftTypes[0])
+        this.plot(url, giftType)
     }
 
     plot(url, giftType) {

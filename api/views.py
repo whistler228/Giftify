@@ -52,9 +52,6 @@ def unsubscribe(request):
 
 @require_GET
 def get_gift(request):
-    if not request.GET:
-        return JsonResponse({"status": False})
-
     form = GiftFormSearch(request.GET, initial={"available": (0, "Any")})
     if not form.is_valid():
         return JsonResponse({"status": False, "errors": form.errors})
