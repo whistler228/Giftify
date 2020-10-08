@@ -87,8 +87,8 @@ def get_gift(request):
                              rate__gte=rate_min, rate__lte=rate_max).order_by("added_at").reverse()[:limit]
 
     gifts = [{"face_value": x.face_value, "price": x.price, "rate": x.rate,
-              "added_at": x.added_at.replace(second=0, microsecond=0).isoformat()} for x in
-             qs]
+              "added_at": x.added_at.replace(second=0, microsecond=0).isoformat(),
+              "sold_at": x.sold_at.replace(second=0, microsecond=0).isoformat() if x.sold_at else None} for x in qs]
     return JsonResponse({"status": True, "gifts": gifts})
 
 
