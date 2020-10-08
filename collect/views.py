@@ -17,7 +17,8 @@ def collect_from_api(gift_type):
 
     date = timezone.make_aware(timezone.datetime.now().replace(second=0, microsecond=0))
 
-    Gift.objects.filter(available=True).exclude(gift_id__in=gift_ids).update(available=False, sold_at=date)
+    Gift.objects.filter(gift_type__name=gift_type, available=True).exclude(gift_id__in=gift_ids).update(available=False,
+                                                                                                        sold_at=date)
 
     for g in gifts:
         try:
