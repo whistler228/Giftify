@@ -108,12 +108,10 @@
                     </div>
                 </div>
             </div>
-            <div class="form-row">
                 <div class="form-group">
                     {{ form.available }}
                 </div>
-            </div>
-            <button type="button" class="btn btn-info"
+            <button type="button" class="btn btn-sm btn-info"
                     onclick="myChart.updateChart($('form'), '{% url "api:get_gift" %}', 0)">Update
             </button>
         </form>

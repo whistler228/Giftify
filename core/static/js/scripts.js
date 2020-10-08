@@ -53,10 +53,7 @@ class MyChart {
 
 
         function updateChart(gifts) {
-            const data = gifts.map(function (item) {
-                    return {x: item.added_at, y: item.rate, price: item.price, faceValue: item.face_value}
-                }
-            )
+            const data = self.genData(gifts)
             if (self.chart) {
                 self.chart.destroy()
             }
@@ -66,8 +63,8 @@ class MyChart {
                     datasets: [{
                         label: giftType,
                         data: data,
-                        backgroundColor: "rgba(120,229,229,0.1)",
-                        borderColor: "rgb(75,192,192)",
+                        backgroundColor: self.genColor(data, "rgba(229,120,158,0.1)", "rgba(120,229,229,0.1)"),
+                        borderColor: self.genColor(data, "rgb(192,75,108)", "rgb(75,192,192)"),
                     }]
                 },
                 options: options,
@@ -89,23 +86,45 @@ class MyChart {
                 console.error(json.errors)
                 return false
             }
-            self.chart.data.datasets[datasetIdx].data = []
-            json.gifts.forEach(item => {
-                    self.chart.data.datasets[datasetIdx].data.push({
-                        t: item.added_at,
-                        y: item.rate,
-                        price: item.price,
-                        faceValue: item.face_value
-                    })
-                }
-            )
-            self.chart.update()
+            const datasets = self.chart.data.datasets[datasetIdx]
+            datasets.data = []
+            datasets.backgroundColor = []
+            datasets.borderColor = []
+
+            const data = self.genData(json.gifts)
+            datasets.data = data
+            datasets.backgroundColor = self.genColor(data, "rgba(229,120,158,0.1)", "rgba(120,229,229,0.1)")
+            datasets.borderColor = self.genColor(data, "rgb(192,75,108)", "rgb(75,192,192)")
+            self.chart.update(data)
         })
     }
 
     changeTimeUnit(unitType) {
         this.chart.options.scales.xAxes[0].time.unit = unitType
         this.chart.update()
+    }
+
+    genData(gifts) {
+        return gifts.map(function (item) {
+                return {
+                    x: item.added_at,
+                    y: item.rate,
+                    price: item.price,
+                    faceValue: item.face_value,
+                    sold_at: item.sold_at
+                }
+            }
+        )
+    }
+
+    genColor(data, soldColor, onSaleColor) {
+        return data.map(d => {
+            if (d.sold_at) {
+                return soldColor
+            } else {
+                return onSaleColor
+            }
+        })
     }
 }
 
