@@ -90,6 +90,7 @@ class MyChart {
             datasets.data = []
             datasets.backgroundColor = []
             datasets.borderColor = []
+            datasets.label = json.gift_name
 
             const data = self.genData(json.gifts)
             datasets.data = data

@@ -14,6 +14,13 @@ class GiftFormSearch(forms.Form):
     available.widget.template_name = "core/widget/radio.html"
     available.widget.option_template_name = "core/widget/radio_options.html"
 
+    limit = forms.ChoiceField(
+        choices=((100, 100), (250, 250), (500, 500), (1000, 1000)),
+        widget=forms.RadioSelect
+    )
+    limit.widget.template_name = "core/widget/radio.html"
+    limit.widget.option_template_name = "core/widget/radio_options.html"
+
     face_value_min = forms.IntegerField(required=False)
     face_value_max = forms.IntegerField(required=False)
     price_min = forms.IntegerField(required=False)
@@ -22,7 +29,6 @@ class GiftFormSearch(forms.Form):
     rate_max = forms.FloatField(required=False)
     dt_from = forms.DateTimeField(required=False)
     dt_to = forms.DateTimeField(required=False)
-    limit = forms.IntegerField(required=False)
 
     if Gift.objects.all().exists():
         oldest = Gift.objects.order_by("added_at").first().added_at
@@ -33,6 +39,7 @@ class GiftFormSearch(forms.Form):
     def __init__(self, *args, **kwargs):
         super(GiftFormSearch, self).__init__(*args, **kwargs)
         self.initial["available"] = 0
+        self.initial["limit"] = 100
 
     def clean(self):
         cleaned_data = super(GiftFormSearch, self).clean()
@@ -107,10 +114,7 @@ class GiftFormSearch(forms.Form):
         return dt_to
 
     def clean_limit(self):
-        data = self.cleaned_data["limit"]
-        if not data:
-            data = 100
-        return min(data, 1000)
+        return int(self.cleaned_data["limit"])
 
 
 class TestForm(forms.Form):

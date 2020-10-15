@@ -108,9 +108,14 @@
                     </div>
                 </div>
             </div>
+            <div class="form-row">
                 <div class="form-group">
                     {{ form.available }}
                 </div>
+                <div class="form-group ml-2">
+                    {{ form.limit }}
+                </div>
+            </div>
             <button type="button" class="btn btn-sm btn-info"
                     onclick="myChart.updateChart($('form'), '{% url "api:get_gift" %}', 0)">Update
             </button>

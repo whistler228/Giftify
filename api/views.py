@@ -5,7 +5,7 @@ from django.views.decorators.http import require_GET
 
 from account.models import CustomUser
 from core.forms import GiftFormSearch
-from core.models import Gift
+from core.models import Gift, GiftType
 
 
 # TODO: Conditionごとに配信設定できるように
@@ -86,7 +86,8 @@ def get_gift(request):
     gifts = [{"face_value": x.face_value, "price": x.price, "rate": x.rate,
               "added_at": x.added_at.replace(second=0, microsecond=0).isoformat(),
               "sold_at": x.sold_at.replace(second=0, microsecond=0).isoformat() if x.sold_at else None} for x in qs]
-    return JsonResponse({"status": True, "gifts": gifts})
+    gift_name = GiftType.objects.get(name=gift_type).display_name
+    return JsonResponse({"status": True, "gifts": gifts, "gift_name": gift_name})
 
 
 def test(request):
