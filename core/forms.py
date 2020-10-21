@@ -30,11 +30,6 @@ class GiftFormSearch(forms.Form):
     dt_from = forms.DateTimeField(required=False)
     dt_to = forms.DateTimeField(required=False)
 
-    if Gift.objects.all().exists():
-        oldest = Gift.objects.order_by("added_at").first().added_at
-    else:
-        oldest = timezone.make_aware(timezone.datetime.strptime("2020", "%Y"))
-    latest = timezone.make_aware(timezone.datetime.strptime("2100", "%Y").replace(second=0, microsecond=0))
 
     def __init__(self, *args, **kwargs):
         super(GiftFormSearch, self).__init__(*args, **kwargs)
@@ -97,20 +92,33 @@ class GiftFormSearch(forms.Form):
             data = 100.
         return min(data, 100.)
 
+    def get_date_range(self):
+        if Gift.objects.all().exists():
+            oldest = Gift.objects.filter(gift_type__name=self.cleaned_data["gift_type"]) \
+                .order_by("added_at").first().added_at
+        else:
+            oldest = timezone.make_aware(timezone.datetime.strptime("2020", "%Y"))
+        latest = timezone.make_aware(timezone.datetime.now())
+        return oldest, latest
+
     def clean_dt_from(self):  # oldest < dt < latest
         dt_from = self.cleaned_data["dt_from"]
+        oldest, latest = self.get_date_range()
+
         if not dt_from:
-            dt_from = self.oldest
-        dt_from = max(dt_from, self.oldest)
-        dt_from = min(dt_from, self.latest)
+            dt_from = oldest
+        dt_from = max(dt_from, oldest)
+        dt_from = min(dt_from, latest)
         return dt_from
 
     def clean_dt_to(self):  # oldest < dt < latest
         dt_to = self.cleaned_data["dt_to"]
+        oldest, latest = self.get_date_range()
+
         if not dt_to:
-            dt_to = self.latest
-        dt_to = max(dt_to, self.oldest)
-        dt_to = min(dt_to, self.latest)
+            dt_to = latest
+        dt_to = max(dt_to, oldest)
+        dt_to = min(dt_to, latest)
         return dt_to
 
     def clean_limit(self):

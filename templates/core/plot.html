@@ -117,7 +117,7 @@
                 </div>
             </div>
             <button type="button" class="btn btn-sm btn-info"
-                    onclick="myChart.updateChart($('form'), '{% url "api:get_gift" %}', 0)">Update
+                    onclick="myChart.updateChart(0); myChart2.updateChart(0)">Update
             </button>
         </form>
         <div class="row">
@@ -135,13 +135,20 @@
                 </button>
             </div>
         </div>
+        <div class="row">
+            <canvas id="graph-2"></canvas>
+        </div>
     </div>
 {% endblock %}
 {% block bottom_script %}
     <script>
-        const canvas = $("#graph")
-        const chart = new Chart(canvas)
-        const myChart = new MyChart('{% url "api:get_gift" %}', chart, canvas, $("form"), "{{ gift_type }}")
+        const form = $("form")
+        const myChart = new MyChart('{% url "api:get_gift" %}', $("#graph"), form, "{{ gift_type }}", 0)
+        const options = myChart.initOptions()
+        myChart.plotScatter(options)
+        const myChart2 = new MyChart('{% url "api:get_periodic_data" %}', $("#graph-2"), form, "{{ gift_type }}", 1)
+        const options2 = myChart2.initOptions()
+        myChart2.plotLine(options2)
     </script>
     <script>
         addTimeScaleChangeEvent(myChart, $("#unitDay"), "day")

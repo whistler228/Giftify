@@ -1,13 +1,15 @@
 class MyChart {
-    constructor(url, chart, canvas, form, giftType) {
-        this.chart = chart
+    constructor(url, canvas, form, giftType, dataType) {
+        this.url = url
         this.canvas = canvas
-        this.giftTypes = giftType
+        this.chart = new Chart(this.canvas)
+        this.giftType = giftType
+        this.dataType = dataType
         this.form = form
-        this.plot(url, giftType)
+        console.log(giftType)
     }
 
-    plot(url, giftType) {
+    initOptions() {
         const self = this
         const options = {
             scales: {
@@ -50,7 +52,26 @@ class MyChart {
                 }
             },
         }
+        if (self.dataType === 1) {
+            options.tooltips.callbacks = {
+                title: function (tooltipItem, data) {
+                    const currentItem = data.datasets[0].data[tooltipItem[0].index]
+                    const date = new Date(tooltipItem[0].xLabel)
+                    const dateString = convertDate(date)
 
+                    return `${dateString}`
+                },
+                label: function (tooltipItem, data) {
+                    const currentItem = data.datasets[0].data[tooltipItem.index]
+                    return ` Rate: ${currentItem.y} %`
+                }
+            }
+        }
+        return options
+    }
+
+    plotScatter(options) {
+        const self = this
 
         function updateChart(gifts) {
             const data = self.genData(gifts)
@@ -61,7 +82,7 @@ class MyChart {
                 type: 'scatter',
                 data: {
                     datasets: [{
-                        label: giftType,
+                        label: self.giftType,
                         data: data,
                         backgroundColor: self.genColor(data, "rgba(229,120,158,0.1)", "rgba(120,229,229,0.1)"),
                         borderColor: self.genColor(data, "rgb(192,75,108)", "rgb(75,192,192)"),
@@ -71,17 +92,47 @@ class MyChart {
             });
         }
 
-        $.getJSON(url, self.form.serialize(), function (json) {
+        $.getJSON(self.url, self.form.serialize(), function (json) {
             if (!json.status === true) {
                 return false
             }
-            updateChart(json.gifts)
+            updateChart(json.data)
         })
     }
 
-    updateChart(form, url, datasetIdx) {
+    plotLine(options) {
         const self = this
-        $.getJSON(url, form.serialize(), function (json) {
+
+        function updateChart(gifts) {
+            const data = self.genData(gifts)
+            if (self.chart) {
+                self.chart.destroy()
+            }
+            self.chart = new Chart(self.canvas, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: self.giftType,
+                        data: data,
+                        backgroundColor: self.genColor(data, "rgba(229,120,158,0.1)", "rgba(120,229,229,0.1)"),
+                        borderColor: self.genColor(data, "rgb(192,75,108)", "rgb(75,192,192)"),
+                    }]
+                },
+                options: options,
+            });
+        }
+
+        $.getJSON(self.url, self.form.serialize(), function (json) {
+            if (!json.status === true) {
+                return false
+            }
+            updateChart(json.data)
+        })
+    }
+
+    updateChart(datasetIdx) {
+        const self = this
+        $.getJSON(self.url, self.form.serialize(), function (json) {
             if (!json.status === true) {
                 console.error(json.errors)
                 return false
@@ -90,9 +141,9 @@ class MyChart {
             datasets.data = []
             datasets.backgroundColor = []
             datasets.borderColor = []
-            datasets.label = json.gift_name
+            datasets.label = self.giftType
 
-            const data = self.genData(json.gifts)
+            const data = self.genData(json.data)
             datasets.data = data
             datasets.backgroundColor = self.genColor(data, "rgba(229,120,158,0.1)", "rgba(120,229,229,0.1)")
             datasets.borderColor = self.genColor(data, "rgb(192,75,108)", "rgb(75,192,192)")
@@ -105,17 +156,34 @@ class MyChart {
         this.chart.update()
     }
 
-    genData(gifts) {
-        return gifts.map(function (item) {
-                return {
-                    x: item.added_at,
-                    y: item.rate,
-                    price: item.price,
-                    faceValue: item.face_value,
-                    sold_at: item.sold_at
-                }
-            }
-        )
+    genData(data) {
+        console.log(data)
+        switch (this.dataType) {
+            case 0:
+                return data.map(function (item) {
+                    return {
+                        x: item.added_at,
+                        y: item.rate,
+                        price: item.price,
+                        faceValue: item.face_value,
+                        sold_at: item.sold_at
+                    }
+                })
+            case 1:
+                return data.map(function (item) {
+                    return {
+                        x: item.date,
+                        y: item.stat.rate__avg,
+                    }
+                })
+            case 2:
+                return data.map(function (item) {
+                    return {
+                        x: item.date,
+                        y: item.stat.rate__min,
+                    }
+                })
+        }
     }
 
     genColor(data, soldColor, onSaleColor) {

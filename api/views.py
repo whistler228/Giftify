@@ -1,11 +1,17 @@
+from datetime import timedelta
+from logging import getLogger
+
 from django.contrib import messages
+from django.db.models import Avg, Min
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 
 from account.models import CustomUser
 from core.forms import GiftFormSearch
-from core.models import Gift, GiftType
+from core.models import Gift
+
+logger = getLogger(__name__)
 
 
 # TODO: Conditionごとに配信設定できるように
@@ -50,44 +56,79 @@ def unsubscribe(request):
 #     conditions = user.condition.all()
 #     return JsonResponse({"status": True, "subscriptions": [{"id": s.id} for s in conditions]})
 
+class FormData:
+    def __init__(self, cleaned_data):
+        self.gift_type = cleaned_data.get("gift_type")
+        self.available = cleaned_data.get("available")
+        self.dt_from = cleaned_data.get("dt_from")
+        self.dt_to = cleaned_data.get("dt_to")
+        self.fv_min = cleaned_data.get("face_value_min")
+        self.fv_max = cleaned_data.get("face_value_max")
+        self.price_min = cleaned_data.get("price_min")
+        self.price_max = cleaned_data.get("price_max")
+        self.rate_min = cleaned_data.get("rate_min")
+        self.rate_max = cleaned_data.get("rate_max")
+
+        self.limit = cleaned_data.get("limit")
+
+        if self.available == "0":
+            self.available = [True, False]
+        elif self.available == "1":
+            self.available = [True]
+        elif self.available == "2":
+            self.available = [False]
+        # dt_from = timezone.make_aware(dt_from)
+        # dt_to = timezone.make_aware(dt_to)
+
+
 @require_GET
 def get_gift(request):
     form = GiftFormSearch(request.GET, initial={"available": (0, "Any")})
     if not form.is_valid():
         return JsonResponse({"status": False, "errors": form.errors})
 
-    gift_type = form.cleaned_data.get("gift_type")
-    available = form.cleaned_data.get("available")
-    dt_from = form.cleaned_data.get("dt_from")
-    dt_to = form.cleaned_data.get("dt_to")
-    fv_min = form.cleaned_data.get("face_value_min")
-    fv_max = form.cleaned_data.get("face_value_max")
-    price_min = form.cleaned_data.get("price_min")
-    price_max = form.cleaned_data.get("price_max")
-    rate_min = form.cleaned_data.get("rate_min")
-    rate_max = form.cleaned_data.get("rate_max")
+    form_data = FormData(form.cleaned_data)
 
-    limit = form.cleaned_data.get("limit")
-
-    if available == "0":
-        available = [True, False]
-    elif available == "1":
-        available = [True]
-    elif available == "2":
-        available = [False]
-    # dt_from = timezone.make_aware(dt_from)
-    # dt_to = timezone.make_aware(dt_to)
-
-    qs = Gift.objects.filter(gift_type__name=gift_type, available__in=available, added_at__gte=dt_from,
-                             added_at__lte=dt_to,
-                             face_value__gte=fv_min, face_value__lte=fv_max, price__gte=price_min, price__lte=price_max,
-                             rate__gte=rate_min, rate__lte=rate_max).order_by("added_at").reverse()[:limit]
+    qs = Gift.objects.filter(gift_type__name=form_data.gift_type, available__in=form_data.available,
+                             added_at__gte=form_data.dt_from, added_at__lte=form_data.dt_to,
+                             face_value__gte=form_data.fv_min, face_value__lte=form_data.fv_max,
+                             price__gte=form_data.price_min, price__lte=form_data.price_max,
+                             rate__gte=form_data.rate_min, rate__lte=form_data.rate_max) \
+             .order_by("added_at").reverse()[:form_data.limit]
 
     gifts = [{"face_value": x.face_value, "price": x.price, "rate": x.rate,
               "added_at": x.added_at.replace(second=0, microsecond=0).isoformat(),
               "sold_at": x.sold_at.replace(second=0, microsecond=0).isoformat() if x.sold_at else None} for x in qs]
-    gift_name = GiftType.objects.get(name=gift_type).display_name
-    return JsonResponse({"status": True, "gifts": gifts, "gift_name": gift_name})
+    return JsonResponse({"status": True, "data": gifts})
+
+
+@require_GET
+def get_periodic_data(request):
+    form = GiftFormSearch(request.GET, initial={"available": (0, "Any")})
+    if not form.is_valid():
+        return JsonResponse({"status": False, "errors": form.errors})
+
+    form_data = FormData(form.cleaned_data)
+    days = (form_data.dt_to - form_data.dt_from).days
+
+    res = []
+    for i in range(days + 1):
+        date = form_data.dt_from.date() + timedelta(days=i)
+        gifts = Gift.objects.filter(
+            gift_type__name=form_data.gift_type, available__in=form_data.available,
+            added_at__gte=form_data.dt_from, added_at__lte=form_data.dt_to,
+            face_value__gte=form_data.fv_min, face_value__lte=form_data.fv_max,
+            price__gte=form_data.price_min, price__lte=form_data.price_max,
+            rate__gte=form_data.rate_min, rate__lte=form_data.rate_max,
+            added_at__date=date
+        )
+
+        if gifts:
+            rate = gifts.aggregate(Avg("rate"), Min("rate"))
+
+            res.append({"date": date, "stat": rate})
+
+    return JsonResponse({"status": True, "data": res})
 
 
 def test(request):
