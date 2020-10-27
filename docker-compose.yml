@@ -11,7 +11,7 @@ services:
       - secrets.env
     environment:
       - "DJANGO_SECRET_KEY"
-      - "VIRTUAL_HOST=amaten.dplab.biz"
+      - "VIRTUAL_HOST=giftify.dplab.biz"
       - "VIRTUAL_PORT=8002"
     volumes:
       - .:/code
