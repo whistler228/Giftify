@@ -6,9 +6,10 @@ from core.models import GiftType, Gift
 
 class GiftFormSearch(forms.Form):
     gift_type = forms.ChoiceField(
-        choices=[(x.name, x.display_name) for x in GiftType.objects.all()])  # forms.CharField(max_length=16)
+        choices=[(x.name, x.display_name) for x in GiftType.objects.all()],
+        label="ギフト券")  # forms.CharField(max_length=16)
     available = forms.ChoiceField(
-        choices=((0, "Any"), (1, "Available"), (2, "Sold"),),
+        choices=((0, "全て"), (1, "販売中"), (2, "取引済み"),),
         widget=forms.RadioSelect
     )
     available.widget.template_name = "core/widget/radio.html"
@@ -21,15 +22,14 @@ class GiftFormSearch(forms.Form):
     limit.widget.template_name = "core/widget/radio.html"
     limit.widget.option_template_name = "core/widget/radio_options.html"
 
-    face_value_min = forms.IntegerField(required=False)
-    face_value_max = forms.IntegerField(required=False)
-    price_min = forms.IntegerField(required=False)
-    price_max = forms.IntegerField(required=False)
-    rate_min = forms.FloatField(required=False)
-    rate_max = forms.FloatField(required=False)
-    dt_from = forms.DateTimeField(required=False)
-    dt_to = forms.DateTimeField(required=False)
-
+    face_value_min = forms.IntegerField(required=False, label="額面価格")
+    face_value_max = forms.IntegerField(required=False, label="")
+    price_min = forms.IntegerField(required=False, label="取引価格")
+    price_max = forms.IntegerField(required=False, label="")
+    rate_min = forms.FloatField(required=False, label="割引率")
+    rate_max = forms.FloatField(required=False, label="")
+    dt_from = forms.DateTimeField(required=False, label="期間")
+    dt_to = forms.DateTimeField(required=False, label="")
 
     def __init__(self, *args, **kwargs):
         super(GiftFormSearch, self).__init__(*args, **kwargs)

@@ -68,6 +68,7 @@
                            class="col-form-label col-form-label-sm py-0">{{ form.rate_min.label }}</label>
                     {{ form.rate_min|add_class:"form-control form-control-sm" }}
                 </div>
+                <span class="mb-0 my-auto">~</span>
                 <div class="form-group col">
                     <label for="{{ form.rate_max.id_for_label }}"
                            class="col-form-label col-form-label-sm py-0">{{ form.rate_max.label }}</label>
@@ -80,7 +81,7 @@
                          data-target-input="nearest">
                         <input id="{{ form.dt_from.id_for_label }}" type="text"
                                class="form-control form-control-sm datetimepicker-input"
-                               data-target="#{{ form.dt_from.id_for_label }}Picker" placeholder="Working Time End"
+                               data-target="#{{ form.dt_from.id_for_label }}Picker" placeholder=""
                                name="working_time_end" value="">
                         <div class="input-group-append" data-target="#{{ form.dt_from.id_for_label }}"
                              data-toggle="datetimepicker">
@@ -90,6 +91,7 @@
                         </div>
                     </div>
                 </div>
+                <span class="mb-0 my-auto">~</span>
                 <div class="form-group col">
                     <label for="{{ form.dt_to.id_for_label }}"
                            class="col-form-label col-form-label-sm py-0">{{ form.dt_to.label }}</label>
@@ -97,7 +99,7 @@
                          data-target-input="nearest">
                         <input id="{{ form.dt_to.id_for_label }}" type="text"
                                class="form-control form-control-sm datetimepicker-input"
-                               data-target="#{{ form.dt_to.id_for_label }}Picker" placeholder="Working Time End"
+                               data-target="#{{ form.dt_to.id_for_label }}Picker" placeholder=""
                                name="working_time_end" value="">
                         <div class="input-group-append" data-target="#{{ form.dt_to.id_for_label }}"
                              data-toggle="datetimepicker">
