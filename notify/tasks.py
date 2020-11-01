@@ -50,8 +50,8 @@ def send_mail(_gift_ids, _condition_id, username):
                    "face_value": x.face_value,
                    "price": x.price} for x in gifts],
         "subject": "Amaten 出品のお知らせ",
-        "image": "http://amaten.dplab.biz" + static("images/gift_logo/google_play.png"),
-        "unsubscribe": f"http://amaten.dplab.biz{reverse('account:unsubscribe_page')}?email={dist}&c={_condition_id}"
+        "image": "http://giftify.dplab.biz" + static("images/gift_logo/google_play.png"),
+        "unsubscribe": f"http://giftify.dplab.biz{reverse('account:unsubscribe_page')}?email={dist}&c={_condition_id}"
     }
     msg.template_id = "d-7f2de4cff2554542ace60013acff23d5"
     try:
