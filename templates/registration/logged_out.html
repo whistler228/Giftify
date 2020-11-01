@@ -3,7 +3,18 @@
 {% block title %}Logout{% endblock %}
 
 {% block content %}
-    <h1>Logged Out</h1>
-    <p>Thanks for spending some quality time with the Web site today.</p>
-    <p><a href="{% url 'login' %}">Log in again</a></p>
+    <div class="card mx-auto" style="width: 26rem; margin-top: 10rem;">
+        <h3 class="card-header text-center">
+            ログアウトしました
+        </h3>
+        <div class="card-body text-center">
+            <p>5秒後、トップページに移動します。</p>
+            <p><a href="{% url 'core:top_page' %}">トップページに戻る</a></p>
+        </div>
+    </div>
+    <script>
+        setInterval(function () {
+            window.location = "{% url 'core:top_page' %}";
+        }, 5000);
+    </script>
 {% endblock %}

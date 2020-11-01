@@ -9,7 +9,7 @@ from django.views.decorators.http import require_GET
 
 from account.models import CustomUser
 from core.forms import GiftFormSearch
-from core.models import Gift
+from core.models import Gift, GiftType
 
 logger = getLogger(__name__)
 
@@ -99,7 +99,8 @@ def get_gift(request):
     gifts = [{"face_value": x.face_value, "price": x.price, "rate": x.rate,
               "added_at": x.added_at.replace(second=0, microsecond=0).isoformat(),
               "sold_at": x.sold_at.replace(second=0, microsecond=0).isoformat() if x.sold_at else None} for x in qs]
-    return JsonResponse({"status": True, "data": gifts})
+    gift_type = GiftType.objects.get(name=form_data.gift_type)
+    return JsonResponse({"status": True, "giftType": gift_type.display_name, "data": gifts})
 
 
 @require_GET
@@ -128,7 +129,8 @@ def get_periodic_data(request):
 
             res.append({"date": date, "stat": rate})
 
-    return JsonResponse({"status": True, "data": res})
+    gift_type = GiftType.objects.get(name=form_data.gift_type)
+    return JsonResponse({"status": True, "giftType": gift_type.display_name, "data": res})
 
 
 def test(request):

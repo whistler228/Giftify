@@ -23,8 +23,7 @@ class MyChart {
                 titleFontStyle: 'bold',
                 titleFontSize: 14,
                 callbacks: {
-                    title: function (tooltipItem, data) {
-                        const currentItem = data.datasets[0].data[tooltipItem[0].index]
+                    title: function (tooltipItem, _) {
                         const date = new Date(tooltipItem[0].xLabel)
                         const dateString = convertDate(date)
 
@@ -53,8 +52,7 @@ class MyChart {
         }
         if (self.dataType === 1) {
             options.tooltips.callbacks = {
-                title: function (tooltipItem, data) {
-                    const currentItem = data.datasets[0].data[tooltipItem[0].index]
+                title: function (tooltipItem, _) {
                     const date = new Date(tooltipItem[0].xLabel)
                     const dateString = convertDate(date)
 
@@ -62,7 +60,7 @@ class MyChart {
                 },
                 label: function (tooltipItem, data) {
                     const currentItem = data.datasets[0].data[tooltipItem.index]
-                    return ` Rate: ${currentItem.y} %`
+                    return ` Rate: ${~~(currentItem.y * 1000) / 1000} %`
                 }
             }
         }
@@ -140,6 +138,7 @@ class MyChart {
             datasets.data = []
             datasets.backgroundColor = []
             datasets.borderColor = []
+            self.giftType = json.giftType
             datasets.label = self.giftType
 
             const data = self.genData(json.data)
@@ -214,6 +213,6 @@ function convertDate(date) {
     const day = zeroFill(date.getDate())
     const hour = zeroFill(date.getHours())
     const minute = zeroFill(date.getMinutes())
-    const second = zeroFill(date.getSeconds())
+    // const second = zeroFill(date.getSeconds())
     return `${year}/${month}/${day} ${hour}:${minute}`
 }
