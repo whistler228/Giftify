@@ -97,7 +97,7 @@ class GiftFormSearch(forms.Form):
             oldest = Gift.objects.filter(gift_type__name=self.cleaned_data["gift_type"]) \
                 .order_by("added_at").first().added_at
         else:
-            oldest = timezone.make_aware(timezone.datetime.strptime("2020", "%Y"))
+            oldest = timezone.make_aware(timezone.datetime(2020, 1, 1))
         latest = timezone.make_aware(timezone.datetime.now())
         return oldest, latest
 

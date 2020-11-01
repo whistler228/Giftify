@@ -6,7 +6,6 @@ class MyChart {
         this.giftType = giftType
         this.dataType = dataType
         this.form = form
-        console.log(giftType)
     }
 
     initOptions() {
@@ -157,7 +156,6 @@ class MyChart {
     }
 
     genData(data) {
-        console.log(data)
         switch (this.dataType) {
             case 0:
                 return data.map(function (item) {
