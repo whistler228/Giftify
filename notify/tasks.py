@@ -10,7 +10,7 @@ from huey.contrib.djhuey import periodic_task, task
 from sendgrid.helpers.mail import Mail, From, To
 
 from account.models import CustomUser, Condition
-from core.models import Gift
+from core.models import Gift, GiftType
 
 logger = getLogger(__name__)
 
@@ -24,6 +24,7 @@ def periodic_check_condition():
                 if user.email and user.is_send_mail:
                     task_send_mail(
                         res.values_list("gift_id", flat=True),
+                        condition.gift_type.name,
                         condition.id,
                         user.username
                     )
@@ -31,14 +32,16 @@ def periodic_check_condition():
 
 
 @task()
-def task_send_mail(_gift_ids, _condition_id, username):
-    return send_mail(_gift_ids, _condition_id, username)
+def task_send_mail(_gift_ids, _gift_type, _condition_id, username):
+    return send_mail(_gift_ids, _gift_type, _condition_id, username)
 
 
-def send_mail(_gift_ids, _condition_id, username):
+def send_mail(_gift_ids, _gift_type, _condition_id, username):
     user = CustomUser.objects.get(username=username)
     tz = pytz.timezone(user.timezone)
     gifts = [Gift.objects.get(gift_id=x) for x in _gift_ids]
+    gift_type_id = _gift_type
+    gift_type_name = GiftType.objects.get(name=_gift_type).display_name
     dist = user.email
 
     msg = Mail(
@@ -46,11 +49,13 @@ def send_mail(_gift_ids, _condition_id, username):
         To(dist)
     )
     msg.dynamic_template_data = {
+        "gift_type": gift_type_name,
         "gifts": [{"added_at": x.added_at.astimezone(tz).strftime("%Y/%m/%d-%H:%M:%S"),
                    "face_value": x.face_value,
                    "price": x.price} for x in gifts],
         "subject": "Amaten 出品のお知らせ",
-        "image": "http://giftify.dplab.biz" + static("images/gift_logo/google_play.png"),
+        "image": "http://giftify.dplab.biz" + static(f"images/gift_logo/{gift_type_id}.png"),
+        "amaten_url": f"https://amaten.com/exhibitions/{gift_type_id}",
         "unsubscribe": f"http://giftify.dplab.biz{reverse('account:unsubscribe_page')}?email={dist}&c={_condition_id}"
     }
     msg.template_id = "d-7f2de4cff2554542ace60013acff23d5"
