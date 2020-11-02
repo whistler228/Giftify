@@ -1,4 +1,6 @@
 {% load static %}
+{% load webpush_head %}
+{% load webpush_switch %}
 <!DOCTYPE html>
 <html lang="ja">
 {# cdn libs: https://cdnjs.com/ #}
@@ -28,6 +30,9 @@
     {% block head %}
         <link href="https://fonts.googleapis.com/css?family=M+PLUS+Rounded+1c" rel="stylesheet">
     {% endblock %}
+    {% webpush_head_script %}
+    {% webpush_head_worker %}
+    {% webpush_head_vapid %}
 </head>
 <body class="d-flex flex-column">
 <div class="container-fluid" id="container">
@@ -45,6 +50,7 @@
                     <label for="switch_darkmode" class="custom-control-label">Darkmode</label>
                 </div>
                 {% if user.is_authenticated %}
+                    {% webpush_switch %}
                     <li class="nav-item"><a href="{% url 'account:user_detail' %}"
                                             class="user nav-link">{{ user.username }}</a></li>
                     <li class="nav-item"><a href="{% url 'logout' %}" class="logout nav-link">Logout</a></li>

@@ -1,13 +1,14 @@
 from logging import getLogger
 
-import pytz
 import sendgrid
 from django.conf import settings
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils import timezone
 from huey import crontab
 from huey.contrib.djhuey import periodic_task, task
 from sendgrid.helpers.mail import Mail, From, To
+from webpush import send_user_notification
 
 from account.models import CustomUser, Condition
 from core.models import Gift, GiftType
@@ -21,13 +22,20 @@ def periodic_check_condition():
         res = check_condition(condition)
         if res.exists():
             for user in condition.user.all():
+                id_list = res.values_list("gift_id", flat=True)
                 if user.email and user.is_send_mail:
                     task_send_mail(
-                        res.values_list("gift_id", flat=True),
+                        id_list,
                         condition.gift_type.name,
                         condition.id,
                         user.username
                     )
+                task_send_webpush(
+                    id_list,
+                    condition.gift_type.name,
+                    condition.id,
+                    user.username
+                )
                 [user.notified.add(x) for x in res]
 
 
@@ -36,9 +44,17 @@ def task_send_mail(_gift_ids, _gift_type, _condition_id, username):
     return send_mail(_gift_ids, _gift_type, _condition_id, username)
 
 
+@task()
+def task_send_webpush(_gift_ids, _gift_type, _condition_id, username):
+    user = CustomUser.objects.get(username=username)
+    for _gift_id in _gift_ids:
+        send_webpush(user, _gift_id)
+    logger.debug(f"[NOTIFY] Sent a Notification to {user.username}")
+
+
 def send_mail(_gift_ids, _gift_type, _condition_id, username):
     user = CustomUser.objects.get(username=username)
-    tz = pytz.timezone(user.timezone)
+    tz = timezone.pytz.timezone(user.timezone)
     gifts = [Gift.objects.get(gift_id=x) for x in _gift_ids]
     gift_type_id = _gift_type
     gift_type_name = GiftType.objects.get(name=_gift_type).display_name
@@ -68,6 +84,17 @@ def send_mail(_gift_ids, _gift_type, _condition_id, username):
         return None
     logger.debug(f"[NOTIFY] Sent a Mail to {user.email}")
     return dist
+
+
+def send_webpush(user, gift_id):
+    gift = Gift.objects.get(gift_id=gift_id)
+    payload = {
+        "head": f"{gift.gift_type.display_name} ギフト券出品通知",
+        "body": f"額面:{gift.face_value}円 {gift.rate}%",
+        "icon": f"https://giftify.dplab.biz{static('images/favicon/android-icon-192x192.png')}",
+        "url": f"https://amaten.com/exhibitions/{gift.gift_type.name}"
+    }
+    send_user_notification(user=user, payload=payload, ttl=1000)
 
 
 def check_condition(condition):

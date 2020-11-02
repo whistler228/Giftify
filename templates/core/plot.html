@@ -29,7 +29,7 @@
 {% endblock %}
 {% block content %}
     <div class="content mx-auto">
-        <form action="{% url 'api:test' %}" method="get">
+        <form {# action="{% url 'api:test' %}" #} method="get">
             {% csrf_token %}
             <div class="form-row">
                 <div class="form-group col-6">
@@ -120,6 +120,11 @@
             </div>
             <button type="button" class="btn btn-sm btn-info"
                     onclick="myChart.updateChart(0); myChart2.updateChart(0)">Update
+            </button>
+            <input type="hidden" name="action" value="add">
+            <button type="button" class="btn btn-sm btn-info" id="register-notice-button"
+                    onclick="registerNotification(`{% url 'api:set_notification' %}`, $('form'), $('#register-notice-button'))">
+                この条件を通知
             </button>
         </form>
         <div class="row">

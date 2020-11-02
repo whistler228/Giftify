@@ -2,12 +2,13 @@ from datetime import timedelta
 from logging import getLogger
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Min
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 
-from account.models import CustomUser
+from account.models import CustomUser, Condition
 from core.forms import GiftFormSearch
 from core.models import Gift, GiftType
 
@@ -137,3 +138,28 @@ def test(request):
     form = GiftFormSearch(request.GET)
     form.is_valid()
     return JsonResponse({"data": request.GET, "status": form.cleaned_data, "msg": form.errors})
+
+
+@login_required
+@require_GET
+def set_notification(request):
+    form = GiftFormSearch(request.GET)
+    if not form.is_valid() or not request.GET.get("action"):
+        return JsonResponse({"status": False, "msg": form.errors})
+
+    form_data = FormData(form.cleaned_data)
+    gift_type = GiftType.objects.get(name=form_data.gift_type)
+    cond, _ = Condition.objects.get_or_create(gift_type=gift_type, min_price=form_data.price_min,
+                                              max_price=form_data.price_max, max_rate=form_data.rate_max)
+
+    if request.GET.get("action") == "add":
+        cond.user.add(request.user)
+    elif request.GET.get("action") == "remove":
+        cond.user.remove(request.user)
+
+    if cond.user.filter(username=request.user.username).exists():
+        return JsonResponse({"status": True, "msg": "registered"})
+    else:
+        if not cond.user.exists():
+            cond.delete()
+        return JsonResponse({"status": True, "msg": "unregistered"})

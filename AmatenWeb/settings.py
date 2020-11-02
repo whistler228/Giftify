@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.forms",
     "huey.contrib.djhuey",
     "widget_tweaks",
+    "webpush",
     "collect",
     "core",
     "notify",
@@ -117,6 +118,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": os.environ.get("VAPID_PUBLIC_KEY"),
+    "VAPID_PRIVATE_KEY": os.environ.get("VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": os.environ.get("VAPID_ADMIN_EMAIL")
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
