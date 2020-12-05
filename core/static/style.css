@@ -57,6 +57,14 @@ footer {
     background: #e8d2c9;
 }
 
+.list-group-item-light.list-group-item-action.active {
+    color: #818182;
+    background-color: #fdfdfe;
+    border-left-color: #ff7885;
+    border-left-width: 5px;
+    transition: all .1s;
+}
+
 
 /* Darkmode */
 .darkmode--activated .container-fluid {
@@ -124,4 +132,8 @@ footer {
 
 .darkmode--activated .btn-secondary {
     background-color: #868686;
+}
+
+.darkmode--activated p {
+    color: #e0e0e0;
 }
