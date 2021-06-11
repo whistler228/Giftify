@@ -45,8 +45,21 @@
             integrity="sha384-3Nqiqht3ZZEO8FKj7GR1upiI385J92VwWNLj+FqHxtLYxd9l+WYpeqSOrLh0T12c"
             crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.6/lib/darkmode-js.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=M+PLUS+Rounded+1c" rel="stylesheet">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0WVS7ZPR3K"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-0WVS7ZPR3K');
+    </script>
     {% block head %}
-        <link href="https://fonts.googleapis.com/css?family=M+PLUS+Rounded+1c" rel="stylesheet">
     {% endblock %}
     {% webpush_head_script %}
     {% webpush_head_worker %}
@@ -69,8 +82,17 @@
                 </div>
                 {% if user.is_authenticated %}
                     {% webpush_switch %}
-                    <li class="nav-item"><a href="{% url 'account:user_detail' %}"
-                                            class="user nav-link">{{ user.username }}</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="accountDropdown" role="button" data-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false" href="#">{{ user.username }}</a>
+                        <div class="dropdown-menu" aria-labelledby="accountDropdown">
+                            <a class="dropdown-item" href="{% url 'account:user_detail' %}">Account</a>
+                            <a class="dropdown-item" href="#">Channels</a>
+                            <a class="dropdown-item" href="{% url 'account:notifications' %}">Notifications</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'account:setting' %}">Settings</a>
+                        </div>
+                    </li>
                     <li class="nav-item"><a href="{% url 'logout' %}" class="logout nav-link">Logout</a></li>
                 {% else %}
                     <li class="nav-item"><a href="{% url 'account:signup' %}" class="signup nav-link">Sign up</a></li>
@@ -79,13 +101,21 @@
             </ul>
         </nav>
     </header>
-    <div class="content mx-auto my-4">
-        {% block content %}{% endblock %}
+    <div class="content mx-auto my-4 d-flex">
+        <div class="column-left pr-lg-2 pt-lg-5">
+            {% include "ads/ad-left.html" %}
+        </div>
+        <div class="column-center w-75">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="column-right pl-lg-2 pt-lg-5">
+            {% include "ads/ad-right.html" %}
+        </div>
     </div>
 </div>
 <footer class="footer w-100 text-center bg-light">
     <div class="container h-100 ">
-        <small class="text-muted align-middle">This is footer</small>
+        <small class="text-muted align-middle">Created by DPLab - 2020</small>
     </div>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"

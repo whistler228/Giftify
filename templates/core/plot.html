@@ -122,10 +122,12 @@
                     onclick="myChart.updateChart(0); myChart2.updateChart(0)">Update
             </button>
             <input type="hidden" name="action" value="add">
+            {% if user.is_authenticated %}
             <button type="button" class="btn btn-sm btn-info" id="register-notice-button"
                     onclick="registerNotification(`{% url 'api:set_notification' %}`, $('form'), $('#register-notice-button'))">
                 この条件を通知
             </button>
+            {% endif %}
         </form>
         <div class="row">
             <canvas id="graph"></canvas>

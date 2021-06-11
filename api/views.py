@@ -1,15 +1,14 @@
-from datetime import timedelta
 from logging import getLogger
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Min
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 
 from account.models import CustomUser, Condition
-from core.forms import GiftFormSearch
+from api.models import DailyStats
+from core.forms import GiftFormSearch, ToggleNotificationForm
 from core.models import Gift, GiftType
 
 logger = getLogger(__name__)
@@ -57,7 +56,7 @@ def unsubscribe(request):
 #     conditions = user.condition.all()
 #     return JsonResponse({"status": True, "subscriptions": [{"id": s.id} for s in conditions]})
 
-class FormData:
+class SearchFormData:
     def __init__(self, cleaned_data):
         self.gift_type = cleaned_data.get("gift_type")
         self.available = cleaned_data.get("available")
@@ -82,13 +81,22 @@ class FormData:
         # dt_to = timezone.make_aware(dt_to)
 
 
+class ToggleNotifyData:
+    def __init__(self, cleaned_data):
+        self.action = cleaned_data.get("action")
+        self.gift_type = cleaned_data.get("gift_type")
+        self.price_min = cleaned_data.get("price_min")
+        self.price_max = cleaned_data.get("price_max")
+        self.rate_max = cleaned_data.get("rate_max")
+
+
 @require_GET
 def get_gift(request):
     form = GiftFormSearch(request.GET, initial={"available": (0, "Any")})
     if not form.is_valid():
         return JsonResponse({"status": False, "errors": form.errors})
 
-    form_data = FormData(form.cleaned_data)
+    form_data = SearchFormData(form.cleaned_data)
 
     qs = Gift.objects.filter(gift_type__name=form_data.gift_type, available__in=form_data.available,
                              added_at__gte=form_data.dt_from, added_at__lte=form_data.dt_to,
@@ -110,28 +118,33 @@ def get_periodic_data(request):
     if not form.is_valid():
         return JsonResponse({"status": False, "errors": form.errors})
 
-    form_data = FormData(form.cleaned_data)
-    days = (form_data.dt_to - form_data.dt_from).days
+    form_data = SearchFormData(form.cleaned_data)
+    # if form_data.dt_to - form_data.dt_from > timedelta(days=30):
+    #     form_data.dt_from = form_data.dt_to - timedelta(days=30)
+    # days = (form_data.dt_to - form_data.dt_from).days
 
-    res = []
-    for i in range(days + 1):
-        date = form_data.dt_from.date() + timedelta(days=i)
-        gifts = Gift.objects.filter(
-            gift_type__name=form_data.gift_type, available__in=form_data.available,
-            added_at__gte=form_data.dt_from, added_at__lte=form_data.dt_to,
-            face_value__gte=form_data.fv_min, face_value__lte=form_data.fv_max,
-            price__gte=form_data.price_min, price__lte=form_data.price_max,
-            rate__gte=form_data.rate_min, rate__lte=form_data.rate_max,
-            added_at__date=date
-        )
+    # res = []
+    # for i in range(days + 1):
+    #     date = form_data.dt_from.date() + timedelta(days=i)
+    #     gifts = Gift.objects.filter(
+    #         gift_type__name=form_data.gift_type, available__in=form_data.available,
+    #         face_value__gte=form_data.fv_min, face_value__lte=form_data.fv_max,
+    #         price__gte=form_data.price_min, price__lte=form_data.price_max,
+    #         rate__gte=form_data.rate_min, rate__lte=form_data.rate_max,
+    #         added_at__date=date
+    #     )
+    #
+    #     if gifts:
+    #         rate = gifts.aggregate(Avg("rate"), Min("rate"))
+    #
+    #         res.append({"date": date, "stat": rate})
 
-        if gifts:
-            rate = gifts.aggregate(Avg("rate"), Min("rate"))
+    gift_type__name = form_data.gift_type
+    res = DailyStats.objects.filter(gift_type__name=gift_type__name).values("date", "average_rate",
+                                                                            "average_face_value",
+                                                                            "min_rate")
 
-            res.append({"date": date, "stat": rate})
-
-    gift_type = GiftType.objects.get(name=form_data.gift_type)
-    return JsonResponse({"status": True, "giftType": gift_type.display_name, "data": res})
+    return JsonResponse({"status": True, "giftType": gift_type__name, "data": list(res)})
 
 
 def test(request):
@@ -143,18 +156,18 @@ def test(request):
 @login_required
 @require_GET
 def set_notification(request):
-    form = GiftFormSearch(request.GET)
-    if not form.is_valid() or not request.GET.get("action"):
+    form = ToggleNotificationForm(request.GET)
+    if not form.is_valid():
         return JsonResponse({"status": False, "msg": form.errors})
 
-    form_data = FormData(form.cleaned_data)
+    form_data = ToggleNotifyData(form.cleaned_data)
     gift_type = GiftType.objects.get(name=form_data.gift_type)
     cond, _ = Condition.objects.get_or_create(gift_type=gift_type, min_price=form_data.price_min,
                                               max_price=form_data.price_max, max_rate=form_data.rate_max)
 
-    if request.GET.get("action") == "add":
+    if form_data.action == "add":
         cond.user.add(request.user)
-    elif request.GET.get("action") == "remove":
+    elif form_data.action == "remove":
         cond.user.remove(request.user)
 
     if cond.user.filter(username=request.user.username).exists():

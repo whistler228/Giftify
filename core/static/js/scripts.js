@@ -170,14 +170,14 @@ class MyChart {
                 return data.map(function (item) {
                     return {
                         x: item.date,
-                        y: item.stat.rate__avg,
+                        y: item.average_rate,
                     }
                 })
             case 2:
                 return data.map(function (item) {
                     return {
                         x: item.date,
-                        y: item.stat.rate__min,
+                        y: item.min_rate,
                     }
                 })
         }

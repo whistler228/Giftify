@@ -125,10 +125,40 @@ class GiftFormSearch(forms.Form):
         return int(self.cleaned_data["limit"])
 
 
-class TestForm(forms.Form):
-    interval = forms.ChoiceField(
-        choices=((0, "DAY"), (1, "HOUR"), (2, "MINUTE"),),
-        widget=forms.RadioSelect
+class ToggleNotificationForm(forms.Form):
+    action = forms.ChoiceField(
+        choices=(("add", "add"), ("remove", "remove"))
     )
-    interval.widget.template_name = "core/widget/radio.html"
-    interval.widget.option_template_name = "core/widget/radio_options.html"
+    gift_type = forms.ChoiceField(
+        choices=[(x.name, x.display_name) for x in GiftType.objects.all()],
+        label="ギフト券")  # forms.CharField(max_length=16)
+
+    price_min = forms.IntegerField(required=False, label="取引価格")
+    price_max = forms.IntegerField(required=False, label="")
+    rate_max = forms.FloatField(required=False, label="")
+
+    def clean_gift_type(self):
+        gift_type = self.cleaned_data["gift_type"]
+        try:
+            GiftType.objects.get(name=gift_type)
+        except Exception:
+            raise forms.ValidationError("Invalid Gift Type")
+        return gift_type
+
+    def clean_price_min(self):
+        data = self.cleaned_data["price_min"]
+        if not data:
+            data = 0
+        return max(data, 0)
+
+    def clean_price_max(self):
+        data = self.cleaned_data["price_max"]
+        if not data:
+            data = 1000000
+        return min(data, 1000000)
+
+    def clean_rate_max(self):
+        data = self.cleaned_data["rate_max"]
+        if not data:
+            raise forms.ValidationError("insufficient parameter")
+        return data

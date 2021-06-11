@@ -1,11 +1,9 @@
-Django==3.1.2
+Django
 django-widget-tweaks==1.4.8
-huey==2.3.0
-idna==2.10
-lxml==4.5.2
+huey
+lxml
 psycopg2==2.8.6
-python-http-client==3.3.1
-redis==3.5.3
-requests==2.24.0
+redis
+requests
 sendgrid==6.4.7
 django-webpush

@@ -223,3 +223,15 @@ function registerNotification(url, formObj, buttonObj) {
     )
 }
 
+function unsubNotification(url, params, buttonObj) {
+    $.getJSON(url, params, (json) => {
+        if (!json.status) {
+            console.error(json)
+        } else {
+            console.log("disabled")
+            buttonObj.prop("disabled", true);
+            buttonObj.text("通知設定済み")
+        }
+    })
+}
+

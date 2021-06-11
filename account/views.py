@@ -29,3 +29,14 @@ def unsubscribe(request):
 
 def unsubscribe_done(request):
     return render(request, "account/unsubscribe_done.html")
+
+
+def setting(request):
+    form = CustomUserUpdateForm()
+    return render(request, "account/settings.html", {"form": form})
+
+
+def notifications(request):
+    user = CustomUser.objects.get(username=request.user.username)
+    condition_list = user.condition.all().order_by("gift_type__display_name")
+    return render(request, "account/notification_list.html", {"condition_list": condition_list, "user": user})
